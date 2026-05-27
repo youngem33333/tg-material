@@ -240,6 +240,17 @@
             margin-left: 8px;
             vertical-align: middle;
         }
+        .spinner-light {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(0, 212, 255, 0.2);
+            border-top-color: #00d4ff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
         @keyframes spin { to { transform: rotate(360deg); } }
 
         .empty-state {
@@ -247,6 +258,115 @@
             color: #444;
             font-size: 13px;
             padding: 20px;
+        }
+
+        /* ===== SETTINGS DESIGN (from Mängeltracker) ===== */
+        .settings-header {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .settings-header .btn {
+            flex: 1;
+            margin-bottom: 0;
+            padding: 14px;
+            font-size: 12px;
+        }
+        .settings-header .btn-outline {
+            background: transparent;
+            color: #888;
+            border: 1px solid #333;
+            box-shadow: none;
+        }
+        .settings-header .btn-outline.active {
+            background: rgba(0, 212, 255, 0.1);
+            color: #00d4ff;
+            border-color: #00d4ff;
+        }
+
+        .settings-title {
+            color: #00d4ff;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 180, 0, 0.1);
+            border: 1px solid rgba(255, 180, 0, 0.3);
+            color: #FFB400;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        .status-badge.connected {
+            background: rgba(0, 255, 136, 0.1);
+            border-color: rgba(0, 255, 136, 0.3);
+            color: #00ff88;
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .btn-test {
+            background: transparent;
+            color: #00d4ff;
+            border: 1px solid #00d4ff;
+            font-size: 12px;
+            padding: 14px;
+            margin-bottom: 10px;
+            box-shadow: none;
+        }
+        .btn-test:active { transform: scale(0.98); }
+
+        .btn-save {
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            color: #050505;
+            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.3);
+            font-size: 14px;
+            padding: 18px;
+            margin-bottom: 0;
+        }
+        .btn-save:active { transform: scale(0.98); }
+
+        .info-card h3 {
+            color: #00d4ff;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+        .info-card p {
+            color: #888;
+            font-size: 12px;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+        .info-card strong {
+            color: #aaa;
+            display: block;
+            margin-bottom: 2px;
+            font-size: 12px;
+        }
+        .info-card a {
+            color: #00d4ff;
+            text-decoration: none;
         }
     </style>
 </head>
@@ -262,26 +382,49 @@
 
         <!-- SETUP SCREEN -->
         <div id="screen-setup" class="screen active">
-            <div class="card">
-                <p class="setup-info">
-                    <strong style="color:#00d4ff">Erstinstallation</strong><br><br>
-                    Gib deine Airtable-Zugangsdaten ein. Diese werden nur auf diesem Handy gespeichert.<br><br>
-                    <a href="#" onclick="alert('1. airtable.com/create/tokens öffnen\n2. Token erstellen mit data.records:read + data.records:write\n3. Base ID aus der URL kopieren (beginnt mit app...)')">Wo finde ich die Daten?</a>
-                </p>
+            <div class="settings-header">
+                <button class="btn btn-outline" onclick="alert('Bitte erst Einstellungen speichern')">📋 NEUER EINTRAG</button>
+                <button class="btn btn-outline active">⚙ EINSTELLUNGEN</button>
+            </div>
 
+            <div class="card">
+                <div class="settings-title">Airtable Verbindung</div>
+                
                 <div class="form-group">
-                    <label class="form-label">Airtable Base ID</label>
+                    <label class="form-label">API Token</label>
+                    <input type="password" id="setup-token" class="form-input" placeholder="patXXXXXXXXXXXXXXXX" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Base ID</label>
                     <input type="text" id="setup-baseid" class="form-input" placeholder="appXXXXXXXXXXXXXX" autocomplete="off">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Tabellenname</label>
+                    <label class="form-label">Tabellen-Name</label>
                     <input type="text" id="setup-table" class="form-input" value="Materialerfassung" autocomplete="off">
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Personal Access Token</label>
-                    <input type="password" id="setup-token" class="form-input" placeholder="patXXXXXXXXXXXXXXXX" autocomplete="off">
+                
+                <div class="status-badge" id="status-badge">
+                    <span class="status-dot"></span>
+                    <span id="status-text">Nicht verbunden</span>
                 </div>
-                <button class="btn btn-primary" onclick="saveConfig()">SPEICHERN & STARTEN</button>
+                
+                <button class="btn btn-test" onclick="testConnection()">VERBINDUNG TESTEN</button>
+                <button class="btn btn-save" onclick="saveConfig()">EINSTELLUNGEN SPEICHERN</button>
+            </div>
+
+            <div class="card info-card">
+                <h3>Info</h3>
+                <p><strong>Wo finde ich die Daten?</strong></p>
+                <p>
+                    <strong>API Token:</strong>
+                    airtable.com/create/tokens<br>
+                    Scopes: data.records:read + data.records:write
+                </p>
+                <p>
+                    <strong>Base ID:</strong>
+                    In Airtable: Help → API documentation<br>
+                    Oder in der URL: airtable.com/appXXXXX/...
+                </p>
             </div>
         </div>
 
@@ -394,9 +537,74 @@
                 document.getElementById('setup-baseid').value = config.baseId;
                 document.getElementById('setup-table').value = config.table;
                 document.getElementById('setup-token').value = config.token;
+                updateStatusBadge(false, 'Nicht verbunden');
             }
             document.getElementById('screen-main').classList.remove('active');
             document.getElementById('screen-setup').classList.add('active');
+        }
+
+        // STATUS BADGE
+        function updateStatusBadge(connected, text) {
+            const badge = document.getElementById('status-badge');
+            const txt = document.getElementById('status-text');
+            txt.textContent = text;
+            if (connected) {
+                badge.classList.add('connected');
+            } else {
+                badge.classList.remove('connected');
+            }
+        }
+
+        // REAL CONNECTION TEST
+        async function testConnection() {
+            const baseId = document.getElementById('setup-baseid').value.trim();
+            const table = document.getElementById('setup-table').value.trim();
+            const token = document.getElementById('setup-token').value.trim();
+
+            if (!baseId || !table || !token) {
+                showToast('Bitte erst alle Felder ausfüllen!', true);
+                updateStatusBadge(false, 'Nicht verbunden');
+                return;
+            }
+
+            const btn = document.querySelector('.btn-test');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = 'TESTE... <span class="spinner-light"></span>';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch(
+                    `https://api.airtable.com/v0/${baseId}/${encodeURIComponent(table)}?maxRecords=1`,
+                    {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                );
+
+                if (response.ok) {
+                    updateStatusBadge(true, 'Verbunden');
+                    showToast('Verbindung erfolgreich! ✓', false, 3000);
+                } else if (response.status === 401 || response.status === 403) {
+                    updateStatusBadge(false, 'Token ungültig');
+                    showToast('API Token ist ungültig!', true, 4000);
+                } else if (response.status === 404) {
+                    updateStatusBadge(false, 'Base/Table nicht gefunden');
+                    showToast('Base ID oder Tabellenname falsch!', true, 4000);
+                } else {
+                    const err = await response.json().catch(() => ({}));
+                    updateStatusBadge(false, 'Fehler');
+                    showToast('Fehler: ' + (err.error?.message || response.statusText), true, 4000);
+                }
+            } catch (err) {
+                updateStatusBadge(false, 'Netzwerkfehler');
+                showToast('Netzwerkfehler: ' + err.message, true, 4000);
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
         }
 
         // PENDING QUEUE
