@@ -492,7 +492,6 @@
     <div id="toast" class="toast"></div>
 
     <script>
-        // Register Service Worker
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration failed'));
         }
@@ -500,7 +499,6 @@
         const SERVER_URL = 'https://cloud.seatable.io';
         const GATEWAY_URL = 'https://cloud.seatable.io/api-gateway/api/v2/dtables';
 
-        // CONFIG
         function getConfig() {
             const raw = localStorage.getItem('tg_material_config');
             return raw ? JSON.parse(raw) : null;
@@ -553,7 +551,6 @@
             else badge.classList.remove('connected');
         }
 
-        // AUTH: Base-Token (JWT) über SeaTable API generieren
         async function getBaseToken() {
             const config = getConfig();
             if (!config) return null;
@@ -562,7 +559,6 @@
             const cachedTime = localStorage.getItem('tg_seatable_base_token_time');
             const now = Date.now();
 
-            // Base-Token ist ~3 Tage gültig, wir cachen ihn 2 Tage
             if (cached && cachedTime && (now - parseInt(cachedTime)) < 172800000) {
                 return cached;
             }
@@ -649,7 +645,6 @@
             }
         }
 
-        // PENDING QUEUE
         function getPending() {
             const raw = localStorage.getItem('tg_material_pending');
             return raw ? JSON.parse(raw) : [];
@@ -669,7 +664,6 @@
             updateUI();
         }
 
-        // NETWORK
         function isOnline() {
             return navigator.onLine;
         }
@@ -695,7 +689,6 @@
         });
         window.addEventListener('offline', updateOnlineStatus);
 
-        // UI UPDATE
         function updateUI() {
             const pending = getPending();
             document.getElementById('txt-pending').textContent = pending.length;
@@ -736,7 +729,6 @@
             return div.innerHTML;
         }
 
-        // FORM SUBMIT
         async function submitForm() {
             const baustelle = document.getElementById('field-baustelle').value.trim();
             const material = document.getElementById('field-material').value.trim();
@@ -767,7 +759,6 @@
             }
         }
 
-        // SEATABLE API
         async function sendToSeaTable(items, fromForm = false) {
             const config = getConfig();
             if (!config) return false;
@@ -839,7 +830,6 @@
             }
         }
 
-        // SYNC
         async function syncPending() {
             const pending = getPending();
             if (pending.length === 0) {
@@ -866,7 +856,6 @@
             }
         }
 
-        // TOAST
         function showToast(message, isError = false, duration = 3000) {
             const toast = document.getElementById('toast');
             toast.textContent = message;
