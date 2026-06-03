@@ -501,6 +501,16 @@
             updateUI();
         }
 
+        // TOKEN EXTREM SÄUBERN
+        function cleanToken(token) {
+            if (!token) return '';
+            return token
+                .replace(/[\s\u00A0\u200B\u200C\u200D\uFEFF]/g, '')  // Alle Whitespace + Unicode-Leerzeichen
+                .replace(/['"]/g, '')                                // Anführungszeichen
+                .replace(/[<>]/g, '')                               // HTML-Tags
+                .trim();
+        }
+
         async function getBaseToken(forceNew = false) {
             const config = getConfig();
             if (!config) return null;
@@ -510,7 +520,7 @@
                 const cachedTime = localStorage.getItem('tg_seatable_base_token_time');
                 const now = Date.now();
                 if (cached && cachedTime && (now - parseInt(cachedTime)) < 172800000) {
-                    logDebug('Token aus Cache', 'ok');
+                    logDebug('Token aus Cache (gültig)', 'ok');
                     return cached;
                 }
             }
@@ -529,6 +539,12 @@
                 logDebug('Auth Status: ' + response.status);
 
                 if (!response.ok) {
+                    if (response.status === 403) {
+                        throw new Error('TOKEN UNGÜLTIG (403). Checkliste für Admin: 1. Base-API-Token verwendet? (Nicht Account-API-Token aus dem Profil!) 2. Rechte auf "Lesen und Schreiben"? 3. Token vollständig kopiert? 4. Token nicht in SeaTable gelöscht/neu generiert?');
+                    }
+                    if (response.status === 401) {
+                        throw new Error('TOKEN UNAUTHORIZED (401). Token ist abgelaufen oder ungültig.');
+                    }
                     throw new Error(data.error_message || data.detail || 'Auth fehlgeschlagen');
                 }
 
@@ -537,7 +553,7 @@
 
                 localStorage.setItem('tg_seatable_base_token', baseToken);
                 localStorage.setItem('tg_seatable_base_token_time', Date.now().toString());
-                logDebug('Token erhalten!', 'ok');
+                logDebug('Token erhalten! Länge: ' + baseToken.length, 'ok');
                 return baseToken;
             } catch (err) {
                 logDebug('Auth ERROR: ' + err.message, 'err');
@@ -655,7 +671,8 @@
         async function testConnection() {
             const baseId = document.getElementById('setup-baseid').value.trim();
             const table = document.getElementById('setup-table').value.trim();
-            const token = document.getElementById('setup-token').value.trim();
+            const rawToken = document.getElementById('setup-token').value;
+            const token = cleanToken(rawToken);
 
             if (!baseId || !table || !token) {
                 showToast('Bitte erst alle Felder ausfüllen!', true);
@@ -725,7 +742,8 @@
             }
             const baseId = document.getElementById('setup-baseid').value.trim();
             const table = document.getElementById('setup-table').value.trim();
-            const token = document.getElementById('setup-token').value.trim();
+            const rawToken = document.getElementById('setup-token').value;
+            const token = cleanToken(rawToken);
 
             if (!baseId || !table || !token) {
                 showToast('Bitte alle Felder ausfüllen!', true);
@@ -776,9 +794,6 @@
         // =====================================================================
         // SEATABLE SENDEN - MIT SPALTENNAMEN (NICHT INTERNEN KEYS)
         // =====================================================================
-        // WICHTIG: SeaTable Append-Rows API erwartet SPALTENNAMEN, nicht Keys!
-        // "Unknown keys are silently ignored without error" → inserted_row_count: 0
-        // =====================================================================
         async function sendToSeaTable(items, fromForm = false) {
             const config = getConfig();
             if (!config) {
@@ -804,9 +819,6 @@
                 return false;
             }
 
-            // Rows mit SPALTENNAMEN bauen (NICHT interne Keys!)
-            // SeaTable Doku: "This endpoint always expects column names (e.g. Name) 
-            // in the row object, not internal column keys (e.g. 0000)."
             const rows = items.map(item => ({
                 "Baustelle": item.baustelle,
                 "Material": item.material,
