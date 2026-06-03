@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#050505">
+    <link rel="manifest" href="manifest.json">
+    <title>TG Material Quick</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            background: #050505;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            min-height: 100vh;
+            min-height: -webkit-fill-available;
+            overflow-x: hidden;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        .bg-glow {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(120px);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .glow-1 { width: 300px; height: 300px; background: rgba(0, 212, 255, 0.08); top: -100px; left: -100px; }
+        .glow-2 { width: 250px; height: 250px; background: rgba(255, 100, 50, 0.06); bottom: -80px; right: -80px; }
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-top: max(15px, env(safe-area-inset-top));
+        }
+        .header h1 {
+            font-size: 26px;
+            font-weight: 800;
+            background: linear-gradient(90deg, #00d4ff, #ff6432);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+        }
+        .header p { color: #666; font-size: 13px; }
+        .badge-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .badge {
+            flex: 1;
+            background: rgba(17,17,17,0.95);
+            border: 1px solid #222;
+            border-radius: 12px;
+            padding: 10px;
+            text-align: center;
+            font-size: 11px;
+            color: #888;
+        }
+        .badge strong { display: block; font-size: 18px; color: #00d4ff; margin-top: 2px; }
+        .badge.offline strong { color: #ff4444; }
+        .badge.pending strong { color: #FFB400; }
+        .card {
+            background: rgba(17, 17, 17, 0.95);
+            border: 1px solid #222;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 15px;
+            backdrop-filter: blur(10px);
+        }
+        .form-group { margin-bottom: 16px; }
+        .form-label {
+            display: block;
+            color: #888;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+        .form-input {
+            width: 100%;
+            background: #151515;
+            border: 1px solid #2a2a2a;
+            border-radius: 10px;
+            padding: 16px 14px;
+            color: #fff;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.2s;
+            -webkit-appearance: none;
+        }
+        .form-input:focus { border-color: #00d4ff; box-shadow: 0 0 15px rgba(0, 212, 255, 0.2); }
+        .form-input::placeholder { color: #555; }
+        .row { display: flex; gap: 12px; }
+        .row .form-group { flex: 1; }
+        select.form-input {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23888'%3E%3Cpath d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            padding-right: 35px;
+        }
+        .btn {
+            width: 100%;
+            padding: 18px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 10px;
+            -webkit-appearance: none;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            color: #050505;
+            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.3);
+        }
+        .btn-primary:active { transform: scale(0.98); }
+        .btn-sync {
+            background: linear-gradient(135deg, #FFB400, #cc9000);
+            color: #050505;
+            box-shadow: 0 4px 20px rgba(255, 180, 0, 0.3);
+        }
+        .btn-sync:active { transform: scale(0.98); }
+        .btn-sync:disabled {
+            background: #333;
+            color: #666;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+        .btn-secondary {
+            background: transparent;
+            color: #00d4ff;
+            border: 1px solid #00d4ff;
+            font-size: 12px;
+            padding: 14px;
+        }
+        .pending-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            -webkit-overflow-scrolling: touch;
+        }
+        .pending-item {
+            background: #151515;
+            border: 1px solid #2a2a2a;
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .pending-item-info { flex: 1; }
+        .pending-item-title { color: #fff; font-size: 14px; font-weight: 600; margin-bottom: 3px; }
+        .pending-item-sub { color: #666; font-size: 11px; }
+        .pending-item-status { color: #FFB400; font-size: 10px; font-weight: 700; text-transform: uppercase; margin-left: 10px; }
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-150px);
+            background: rgba(0, 212, 255, 0.15);
+            border: 1px solid #00d4ff;
+            color: #00d4ff;
+            padding: 16px 28px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 14px;
+            z-index: 1000;
+            opacity: 0;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            text-align: center;
+            max-width: 90%;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .toast.error { background: rgba(255, 68, 68, 0.15); border-color: #ff4444; color: #ff4444; }
+        .toast.success { background: rgba(0, 255, 136, 0.15); border-color: #00ff88; color: #00ff88; }
+        .screen { display: none; }
+        .screen.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(0,0,0,0.3);
+            border-top-color: #050505;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+        .spinner-light {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(0, 212, 255, 0.2);
+            border-top-color: #00d4ff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .settings-header { display: flex; gap: 10px; margin-bottom: 15px; }
+        .settings-header .btn { flex: 1; margin-bottom: 0; padding: 14px; font-size: 12px; }
+        .settings-header .btn-outline {
+            background: transparent;
+            color: #888;
+            border: 1px solid #333;
+            box-shadow: none;
+        }
+        .settings-header .btn-outline.active {
+            background: rgba(0, 212, 255, 0.1);
+            color: #00d4ff;
+            border-color: #00d4ff;
+        }
+        .settings-title {
+            color: #00d4ff;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 180, 0, 0.1);
+            border: 1px solid rgba(255, 180, 0, 0.3);
+            color: #FFB400;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        .status-badge.connected {
+            background: rgba(0, 255, 136, 0.1);
+            border-color: rgba(0, 255, 136, 0.3);
+            color: #00ff88;
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .btn-test {
+            background: transparent;
+            color: #00d4ff;
+            border: 1px solid #00d4ff;
+            font-size: 12px;
+            padding: 14px;
+            margin-bottom: 10px;
+            box-shadow: none;
+        }
+        .btn-test:active { transform: scale(0.98); }
+        .btn-save {
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            color: #050505;
+            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.3);
+            font-size: 14px;
+            padding: 18px;
+            margin-bottom: 0;
+        }
+        .btn-save:active { transform: scale(0.98); }
+        .info-card h3 {
+            color: #00d4ff;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+        .info-card p { color: #888; font-size: 12px; line-height: 1.5; margin-bottom: 10px; }
+        .info-card strong { color: #aaa; display: block; margin-bottom: 2px; font-size: 12px; }
+        .debug-box {
+            background: #0a0a0a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 10px;
+            color: #888;
+            max-height: 350px;
+            overflow-y: auto;
+            word-break: break-all;
+        }
+        .debug-box .ok { color: #00ff88; }
+        .debug-box .err { color: #ff4444; }
+        .debug-box .warn { color: #FFB400; }
+    </style>
+</head>
+<body>
+    <div class="bg-glow glow-1"></div>
+    <div class="bg-glow glow-2"></div>
+
+    <div class="container">
+        <div class="header">
+            <h1>TG MATERIAL</h1>
+            <p>Offline-Erfassung von der Baustelle</p>
+        </div>
+
+        <!-- SETUP SCREEN -->
+        <div id="screen-setup" class="screen active">
+            <div class="settings-header">
+                <button class="btn btn-outline" onclick="alert('Bitte erst Einstellungen speichern')">📋 NEUER EINTRAG</button>
+                <button class="btn btn-outline active">⚙ EINSTELLUNGEN</button>
+            </div>
+
+            <div class="card">
+                <div class="settings-title">SeaTable Verbindung</div>
+
+                <div class="form-group">
+                    <label class="form-label">Base API Token</label>
+                    <input type="password" id="setup-token" class="form-input" placeholder="b2e44468cb..." autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Base UUID</label>
+                    <input type="text" id="setup-baseid" class="form-input" placeholder="c66ce3d5-cd6b-4870-9cce-82c393b818cd" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Tabellen-Name</label>
+                    <input type="text" id="setup-table" class="form-input" value="Materialerfassung" autocomplete="off">
+                </div>
+
+                <div class="status-badge" id="status-badge">
+                    <span class="status-dot"></span>
+                    <span id="status-text">Nicht verbunden</span>
+                </div>
+
+                <button class="btn btn-test" onclick="testConnection()">VERBINDUNG TESTEN</button>
+                <button class="btn btn-save" onclick="saveConfig()">EINSTELLUNGEN SPEICHERN</button>
+
+                <div class="debug-box" id="debug-setup" style="display:none;"></div>
+            </div>
+
+            <div class="card info-card">
+                <h3>Info</h3>
+                <p><strong>Base API Token:</strong> In deiner SeaTable Base: Einstellungen > API-Token<br>Rechte: Lesen und Schreiben</p>
+                <p><strong>Base UUID:</strong> In deiner SeaTable Base: Einstellungen > API-Token</p>
+            </div>
+        </div>
+
+        <!-- MAIN SCREEN -->
+        <div id="screen-main" class="screen">
+            <div class="badge-bar">
+                <div class="badge" id="badge-online">
+                    Internet
+                    <strong id="txt-online">Prüfen...</strong>
+                </div>
+                <div class="badge pending" id="badge-pending">
+                    Ausstehend
+                    <strong id="txt-pending">0</strong>
+                </div>
+            </div>
+
+            <button class="btn btn-sync" id="btn-sync" onclick="syncPending()" disabled>
+                ALLES SYNCHRONISIEREN
+            </button>
+
+            <div class="card">
+                <div class="form-group">
+                    <label class="form-label">Baustelle</label>
+                    <input type="text" id="field-baustelle" class="form-input" placeholder="z.B. Müller-Bau Hauptstr. 12" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Material</label>
+                    <input type="text" id="field-material" class="form-input" placeholder="z.B. Gipskartonplatte 12,5mm" autocomplete="off">
+                </div>
+                <div class="row">
+                    <div class="form-group">
+                        <label class="form-label">Menge</label>
+                        <input type="number" id="field-menge" class="form-input" placeholder="0" autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Einheit</label>
+                        <select id="field-einheit" class="form-input">
+                            <option value="Stk">Stk</option>
+                            <option value="m">m</option>
+                            <option value="m²">m²</option>
+                            <option value="m³">m³</option>
+                            <option value="kg">kg</option>
+                            <option value="L">L</option>
+                            <option value="Palette">Palette</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Erfasst von</label>
+                    <input type="text" id="field-erfasser" class="form-input" placeholder="Dein Name" autocomplete="off">
+                </div>
+                <button class="btn btn-primary" id="btn-submit" onclick="submitForm()">
+                    MATERIAL SPEICHERN
+                </button>
+
+                <div class="debug-box" id="debug-main" style="display:none;"></div>
+            </div>
+
+            <div class="card" id="card-pending" style="display:none;">
+                <p class="form-label" style="margin-bottom:10px;">Gespeichert auf dem Handy</p>
+                <div class="pending-list" id="pending-list"></div>
+            </div>
+
+            <button class="btn btn-secondary" onclick="showSettings()">EINSTELLUNGEN ÄNDERN</button>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        const SERVER_URL = 'https://cloud.seatable.io';
+        const GATEWAY_URL = 'https://cloud.seatable.io/api-gateway/api/v2/dtables';
+
+        function logDebug(msg, type) {
+            console.log('[TG]', msg);
+            const boxSetup = document.getElementById('debug-setup');
+            const boxMain = document.getElementById('debug-main');
+            const box = boxMain || boxSetup;
+            if (box) {
+                box.style.display = 'block';
+                let cls = '';
+                if (type === 'ok') cls = 'class="ok"';
+                if (type === 'err') cls = 'class="err"';
+                if (type === 'warn') cls = 'class="warn"';
+                box.innerHTML += '<div ' + cls + '>' + msg + '</div>';
+                box.scrollTop = box.scrollHeight;
+            }
+        }
+
+        function clearDebug() {
+            const s = document.getElementById('debug-setup');
+            const m = document.getElementById('debug-main');
+            if (s) s.innerHTML = '';
+            if (m) m.innerHTML = '';
+        }
+
+        function storageAvailable() {
+            try {
+                const test = '__storage_test__';
+                localStorage.setItem(test, test);
+                localStorage.removeItem(test);
+                return true;
+            } catch (e) { return false; }
+        }
+
+        function getConfig() {
+            if (!storageAvailable()) return null;
+            const raw = localStorage.getItem('tg_material_config');
+            return raw ? JSON.parse(raw) : null;
+        }
+
+        function clearCachedToken() {
+            if (!storageAvailable()) return;
+            localStorage.removeItem('tg_seatable_base_token');
+            localStorage.removeItem('tg_seatable_base_token_time');
+        }
+
+        function getPending() {
+            if (!storageAvailable()) return [];
+            const raw = localStorage.getItem('tg_material_pending');
+            return raw ? JSON.parse(raw) : [];
+        }
+
+        function setPending(list) {
+            if (!storageAvailable()) return;
+            localStorage.setItem('tg_material_pending', JSON.stringify(list));
+        }
+
+        function addPending(item) {
+            const list = getPending();
+            item.id = Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            item.savedAt = new Date().toLocaleString('de-DE');
+            list.push(item);
+            setPending(list);
+            updateUI();
+        }
+
+        function clearPending() {
+            if (!storageAvailable()) return;
+            localStorage.removeItem('tg_material_pending');
+            updateUI();
+        }
+
+        async function getBaseToken(forceNew = false) {
+            const config = getConfig();
+            if (!config) return null;
+
+            if (!forceNew) {
+                const cached = localStorage.getItem('tg_seatable_base_token');
+                const cachedTime = localStorage.getItem('tg_seatable_base_token_time');
+                const now = Date.now();
+                if (cached && cachedTime && (now - parseInt(cachedTime)) < 172800000) {
+                    logDebug('Token aus Cache', 'ok');
+                    return cached;
+                }
+            }
+
+            logDebug('Hole neuen Access-Token...');
+            try {
+                const response = await fetch(`${SERVER_URL}/api/v2.1/dtable/app-access-token/`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Token ${config.token}`,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+                logDebug('Auth Status: ' + response.status);
+
+                if (!response.ok) {
+                    throw new Error(data.error_message || data.detail || 'Auth fehlgeschlagen');
+                }
+
+                const baseToken = data.access_token || data.base_token || data.token;
+                if (!baseToken) throw new Error('Kein Token in Antwort');
+
+                localStorage.setItem('tg_seatable_base_token', baseToken);
+                localStorage.setItem('tg_seatable_base_token_time', Date.now().toString());
+                logDebug('Token erhalten!', 'ok');
+                return baseToken;
+            } catch (err) {
+                logDebug('Auth ERROR: ' + err.message, 'err');
+                return null;
+            }
+        }
+
+        function showToast(message, isError = false, duration = 4000) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast' + (isError ? ' error' : ' success');
+            requestAnimationFrame(() => {
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), duration);
+            });
+        }
+
+        function updateStatusBadge(connected, text) {
+            const badge = document.getElementById('status-badge');
+            const txt = document.getElementById('status-text');
+            txt.textContent = text;
+            if (connected) badge.classList.add('connected');
+            else badge.classList.remove('connected');
+        }
+
+        function isOnline() { return navigator.onLine; }
+
+        function updateOnlineStatus() {
+            const el = document.getElementById('txt-online');
+            const badge = document.getElementById('badge-online');
+            if (isOnline()) {
+                el.textContent = 'Online'; el.style.color = '#00ff88';
+                badge.classList.remove('offline');
+            } else {
+                el.textContent = 'Offline'; el.style.color = '#ff4444';
+                badge.classList.add('offline');
+            }
+        }
+
+        window.addEventListener('online', () => {
+            updateOnlineStatus();
+            showToast('Internet wieder da!', false, 2000);
+            setTimeout(syncPending, 1500);
+        });
+        window.addEventListener('offline', updateOnlineStatus);
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function updateUI() {
+            const pending = getPending();
+            document.getElementById('txt-pending').textContent = pending.length;
+            const card = document.getElementById('card-pending');
+            const list = document.getElementById('pending-list');
+            if (pending.length === 0) {
+                card.style.display = 'none';
+            } else {
+                card.style.display = 'block';
+                list.innerHTML = pending.map(item => `
+                    <div class="pending-item">
+                        <div class="pending-item-info">
+                            <div class="pending-item-title">${escapeHtml(item.material)}</div>
+                            <div class="pending-item-sub">${item.menge} ${item.einheit} • ${escapeHtml(item.baustelle)} • ${item.savedAt}</div>
+                        </div>
+                        <div class="pending-item-status">Wartet...</div>
+                    </div>
+                `).join('');
+            }
+            const btnSync = document.getElementById('btn-sync');
+            if (pending.length > 0 && isOnline()) {
+                btnSync.disabled = false;
+                btnSync.innerHTML = `${pending.length} EINTRÄGE SYNCEN`;
+            } else {
+                btnSync.disabled = true;
+                btnSync.innerHTML = pending.length > 0 ? 'OFFLINE - WARTE AUF NETZ' : 'ALLES SYNCHRONISIERT';
+            }
+            updateOnlineStatus();
+        }
+
+        function showScreen(name) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            const target = document.getElementById('screen-' + name);
+            if (target) target.classList.add('active');
+        }
+
+        function checkSetup() {
+            if (!storageAvailable()) {
+                showToast('LocalStorage nicht verfügbar! Privater Modus?', true, 5000);
+                return;
+            }
+            const config = getConfig();
+            if (config && config.baseId && config.table && config.token) {
+                showScreen('main');
+                updateUI();
+            } else {
+                showScreen('setup');
+            }
+        }
+
+        function showSettings() {
+            const config = getConfig();
+            if (config) {
+                document.getElementById('setup-baseid').value = config.baseId;
+                document.getElementById('setup-table').value = config.table;
+                document.getElementById('setup-token').value = config.token;
+                updateStatusBadge(false, 'Nicht verbunden');
+            }
+            clearDebug();
+            showScreen('setup');
+        }
+
+        async function testConnection() {
+            const baseId = document.getElementById('setup-baseid').value.trim();
+            const table = document.getElementById('setup-table').value.trim();
+            const token = document.getElementById('setup-token').value.trim();
+
+            if (!baseId || !table || !token) {
+                showToast('Bitte erst alle Felder ausfüllen!', true);
+                return;
+            }
+
+            clearDebug();
+            const btn = document.querySelector('.btn-test');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = 'TESTE... <span class="spinner-light"></span>';
+            btn.disabled = true;
+
+            clearCachedToken();
+            localStorage.setItem('tg_material_config', JSON.stringify({ baseId, table, token }));
+            logDebug('Config gespeichert. Token-Länge: ' + token.length);
+
+            try {
+                const baseToken = await getBaseToken(true);
+                if (!baseToken) {
+                    updateStatusBadge(false, 'Token ungültig');
+                    showToast('Verbindung fehlgeschlagen! Siehe Debug-Log.', true, 5000);
+                    return;
+                }
+
+                const rowsResp = await fetch(
+                    `${GATEWAY_URL}/${encodeURIComponent(baseId)}/rows/?table_name=${encodeURIComponent(table)}&limit=1`,
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${baseToken}`,
+                            'Accept': 'application/json'
+                        }
+                    }
+                );
+
+                logDebug('Rows Status: ' + rowsResp.status);
+
+                if (rowsResp.ok) {
+                    const data = await rowsResp.json();
+                    const rowCount = data.rows ? data.rows.length : 0;
+                    updateStatusBadge(true, `Verbunden • ${rowCount} Test-Row(s) geladen`);
+                    showToast(`Verbindung OK! ${rowCount} Row(s) gelesen. ✓`, false, 3000);
+                } else if (rowsResp.status === 401 || rowsResp.status === 403) {
+                    updateStatusBadge(false, 'Token ungültig');
+                    showToast('Token ist ungültig!', true, 4000);
+                } else if (rowsResp.status === 404) {
+                    updateStatusBadge(false, 'Base/Table nicht gefunden');
+                    showToast('Base UUID oder Tabellenname falsch!', true, 4000);
+                } else {
+                    const err = await rowsResp.json().catch(() => ({}));
+                    updateStatusBadge(false, 'Fehler');
+                    showToast('Fehler: ' + (err.error_message || rowsResp.statusText), true, 4000);
+                }
+            } catch (err) {
+                logDebug('CATCH: ' + err.name + ': ' + err.message, 'err');
+                updateStatusBadge(false, 'Netzwerkfehler');
+                showToast('Netzwerkfehler: ' + err.message, true, 4000);
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        function saveConfig() {
+            if (!storageAvailable()) {
+                showToast('Speichern nicht möglich! Browser blockiert localStorage.', true, 5000);
+                return;
+            }
+            const baseId = document.getElementById('setup-baseid').value.trim();
+            const table = document.getElementById('setup-table').value.trim();
+            const token = document.getElementById('setup-token').value.trim();
+
+            if (!baseId || !table || !token) {
+                showToast('Bitte alle Felder ausfüllen!', true);
+                return;
+            }
+
+            clearCachedToken();
+            localStorage.setItem('tg_material_config', JSON.stringify({ baseId, table, token }));
+            showToast('Gespeichert! Wechsle zum Formular...', false, 2000);
+            setTimeout(() => { showScreen('main'); updateUI(); }, 800);
+        }
+
+        async function submitForm() {
+            const baustelle = document.getElementById('field-baustelle').value.trim();
+            const material = document.getElementById('field-material').value.trim();
+            const menge = document.getElementById('field-menge').value;
+            const einheit = document.getElementById('field-einheit').value;
+            const erfasser = document.getElementById('field-erfasser').value.trim();
+
+            if (!baustelle || !material || !menge || !erfasser) {
+                showToast('Bitte alle Felder ausfüllen!', true);
+                return;
+            }
+
+            const item = {
+                baustelle, material,
+                menge: parseFloat(menge),
+                einheit, erfasser,
+                datum: new Date().toISOString().split('T')[0]
+            };
+
+            if (isOnline()) {
+                const success = await sendToSeaTable([item], true);
+                if (success) {
+                    document.getElementById('field-material').value = '';
+                    document.getElementById('field-menge').value = '';
+                    document.getElementById('field-einheit').value = 'Stk';
+                }
+            } else {
+                addPending(item);
+                showToast('Offline gespeichert!', false, 3000);
+                document.getElementById('field-material').value = '';
+                document.getElementById('field-menge').value = '';
+                document.getElementById('field-einheit').value = 'Stk';
+            }
+        }
+
+        // =====================================================================
+        // SEATABLE SENDEN - MIT SPALTENNAMEN (NICHT INTERNEN KEYS)
+        // =====================================================================
+        // WICHTIG: SeaTable Append-Rows API erwartet SPALTENNAMEN, nicht Keys!
+        // "Unknown keys are silently ignored without error" → inserted_row_count: 0
+        // =====================================================================
+        async function sendToSeaTable(items, fromForm = false) {
+            const config = getConfig();
+            if (!config) {
+                showToast('Keine Konfiguration!', true, 3000);
+                return false;
+            }
+
+            const btn = document.getElementById('btn-submit');
+            const originalText = btn ? btn.innerHTML : '';
+            if (fromForm && btn) {
+                btn.innerHTML = 'SENDEN... <span class="spinner"></span>';
+                btn.disabled = true;
+            }
+
+            clearDebug();
+            logDebug('=== SENDE START ===');
+            logDebug('Verwende SPALTENNAMEN (nicht interne Keys)');
+
+            const baseToken = await getBaseToken(true);
+            if (!baseToken) {
+                showToast('Authentifizierung fehlgeschlagen!', true, 4000);
+                if (fromForm && btn) { btn.innerHTML = originalText; btn.disabled = false; }
+                return false;
+            }
+
+            // Rows mit SPALTENNAMEN bauen (NICHT interne Keys!)
+            // SeaTable Doku: "This endpoint always expects column names (e.g. Name) 
+            // in the row object, not internal column keys (e.g. 0000)."
+            const rows = items.map(item => ({
+                "Baustelle": item.baustelle,
+                "Material": item.material,
+                "Menge": item.menge,
+                "Einheit": item.einheit,
+                "Erfasst von": item.erfasser,
+                "Datum": item.datum,
+                "Status": "Neu"
+            }));
+
+            logDebug('Sende ' + rows.length + ' Row(s)');
+            logDebug('Payload: ' + JSON.stringify(rows[0]).substring(0, 300));
+
+            try {
+                const url = `${GATEWAY_URL}/${encodeURIComponent(config.baseId)}/rows/`;
+                logDebug('URL: ' + url);
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${baseToken}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        table_name: config.table,
+                        rows: rows
+                    })
+                });
+
+                const responseText = await response.text();
+                logDebug('Status: ' + response.status);
+                logDebug('Response: ' + responseText.substring(0, 500));
+
+                let data = {};
+                try { data = JSON.parse(responseText); } catch(e) {}
+
+                if (response.ok && data.inserted_row_count > 0) {
+                    logDebug('✓ Erfolg! ' + data.inserted_row_count + ' Row(s) eingefügt.', 'ok');
+                    if (fromForm) showToast('Material erfasst! ✓', false, 3000);
+                    if (fromForm && btn) { btn.innerHTML = originalText; btn.disabled = false; }
+                    return true;
+                }
+
+                if (response.ok && data.inserted_row_count === 0) {
+                    logDebug('⚠ Status 200 aber inserted_row_count=0', 'warn');
+                    logDebug('SeaTable ignoriert unbekannte Keys. Prüfe Spaltennamen!', 'warn');
+                    showToast('SeaTable hat keine Rows eingefügt. Prüfe ob die Spaltennamen in der Tabelle exakt so heißen: Baustelle, Material, Menge, Einheit, Erfasst von, Datum, Status', true, 8000);
+                } else if (!response.ok) {
+                    logDebug('✗ Fehlgeschlagen (' + response.status + ')', 'err');
+                    showToast('Fehler: ' + (data.error_message || data.detail || data.error_msg || response.statusText), true, 4000);
+                }
+
+            } catch (err) {
+                logDebug('✗ ERROR: ' + err.message, 'err');
+                showToast('Netzwerkfehler: ' + err.message, true, 4000);
+            }
+
+            if (fromForm && btn) { btn.innerHTML = originalText; btn.disabled = false; }
+            return false;
+        }
+
+        async function syncPending() {
+            const pending = getPending();
+            if (pending.length === 0) { showToast('Nichts zu syncen!', false, 2000); return; }
+            if (!isOnline()) { showToast('Kein Internet!', true, 2000); return; }
+
+            const btn = document.getElementById('btn-sync');
+            btn.innerHTML = `<span class="spinner"></span> SYNC LÄUFT...`;
+            btn.disabled = true;
+
+            const success = await sendToSeaTable(pending, false);
+
+            if (success) {
+                clearPending();
+                showToast(`${pending.length} Einträge syncen! ✓`, false, 3000);
+            } else {
+                showToast('Sync fehlgeschlagen. Bleibt gespeichert.', true, 3000);
+                updateUI();
+            }
+        }
+
+        checkSetup();
+    </script>
+</body>
+</html>
